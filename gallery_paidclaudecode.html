@@ -1,0 +1,638 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>はぎのギャラリー — Premium</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg:      #fdf5ec;
+      --ink:     #3d2c1e;
+      --muted:   #a08060;
+      --amber:   #c8813a;
+    }
+
+    html, body { height: 100%; overflow: hidden; }
+
+    body {
+      font-family: "Hiragino Mincho ProN", "Yu Mincho", "Times New Roman", serif;
+      background: var(--bg);
+      color: var(--ink);
+      -webkit-font-smoothing: antialiased;
+    }
+
+    /* ── Watercolor canvas ── */
+    #inkCanvas {
+      position: fixed; inset: 0; z-index: 0; pointer-events: none;
+    }
+
+    /* ── Film grain ── */
+    .grain {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none;
+      opacity: 0.025;
+      background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='200' height='200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='200' height='200' filter='url(%23n)'/%3E%3C/svg%3E");
+      background-size: 160px;
+    }
+
+    /* ── Page shell ── */
+    .page {
+      position: relative; z-index: 2;
+      height: 100svh;
+      display: flex; flex-direction: column;
+    }
+
+    /* ── Header ── */
+    header {
+      flex-shrink: 0;
+      display: flex; align-items: center; justify-content: space-between;
+      padding: 18px 28px 12px;
+    }
+
+    .wordmark {
+      display: flex; align-items: baseline; gap: 10px;
+      font-size: 20px; font-weight: 400; letter-spacing: 0.06em; color: var(--ink);
+    }
+    .wordmark em {
+      font-style: normal; font-size: 12px; color: var(--muted);
+      letter-spacing: 0.12em; font-family: "Courier New", monospace;
+    }
+
+    .header-btns { display: flex; gap: 9px; }
+
+    .pill {
+      display: inline-flex; align-items: center; gap: 6px;
+      padding: 8px 16px; border-radius: 999px;
+      border: 1.5px solid rgba(100,70,40,0.22);
+      background: rgba(255,255,255,0.72);
+      color: var(--ink); font-size: 13px; font-weight: 600;
+      font-family: inherit; cursor: pointer; text-decoration: none;
+      transition: background 0.2s, transform 0.15s, border-color 0.2s;
+      backdrop-filter: blur(8px);
+      white-space: nowrap;
+    }
+    .pill:hover { background: rgba(255,255,255,0.94); border-color: rgba(100,70,40,0.38); transform: translateY(-1px); }
+    .pill:active { transform: scale(0.97); }
+
+    /* ── Gallery stage ── */
+    .stage {
+      flex: 1; position: relative; overflow: hidden;
+      display: flex; align-items: center;
+    }
+
+    /* Edge fade */
+    .stage::before, .stage::after {
+      content: ""; position: absolute; top: 0; bottom: 0; width: 130px; z-index: 10; pointer-events: none;
+    }
+    .stage::before { left: 0;  background: linear-gradient(to right, var(--bg) 20%, transparent); }
+    .stage::after  { right: 0; background: linear-gradient(to left,  var(--bg) 20%, transparent); }
+
+    .track {
+      position: absolute; top: 0; bottom: 0; left: 0;
+      display: flex; align-items: center;
+      will-change: transform;
+    }
+
+    /* ── Polaroid cards ── */
+    .card {
+      position: absolute; top: 50%;
+      transform-origin: center bottom;
+      cursor: pointer; user-select: none;
+      transition: opacity 0.35s ease, filter 0.35s ease;
+    }
+
+    .card-inner {
+      background: #fff;
+      padding: 11px 11px 0;
+      border-radius: 3px;
+      box-shadow:
+        0 1px 3px rgba(0,0,0,0.07),
+        0 6px 20px rgba(0,0,0,0.11),
+        0 18px 50px rgba(0,0,0,0.07);
+      transition: box-shadow 0.4s ease;
+    }
+    .card.is-center .card-inner {
+      box-shadow:
+        0 3px 6px rgba(0,0,0,0.10),
+        0 14px 44px rgba(160,100,40,0.20),
+        0 36px 90px rgba(0,0,0,0.12);
+    }
+
+    .card-img-wrap {
+      width: 100%; aspect-ratio: 1;
+      overflow: hidden; background: #f0e6d8;
+    }
+    .card-img-wrap img {
+      width: 100%; height: 100%; object-fit: cover; display: block;
+      transition: transform 0.5s ease;
+    }
+    .card.is-center .card-img-wrap img { transform: scale(1.03); }
+
+    .card-label {
+      display: flex; align-items: center; justify-content: center;
+      font-family: "Courier New", Courier, monospace;
+      font-size: 11px; color: var(--muted); letter-spacing: 0.07em;
+    }
+
+    /* ── Nav buttons ── */
+    .nav-btn {
+      position: absolute; top: 50%; transform: translateY(-50%);
+      z-index: 20;
+      width: 44px; height: 44px; border-radius: 50%;
+      border: 1.5px solid rgba(100,70,40,0.22);
+      background: rgba(255,255,255,0.78);
+      backdrop-filter: blur(10px);
+      color: var(--ink); font-size: 26px; font-weight: 400;
+      cursor: pointer; display: grid; place-items: center;
+      box-shadow: 0 4px 18px rgba(0,0,0,0.10);
+      transition: background 0.2s, transform 0.2s, border-color 0.2s;
+    }
+    .nav-btn.left  { left: 22px; }
+    .nav-btn.right { right: 22px; }
+    .nav-btn:hover { background: rgba(255,255,255,0.96); border-color: rgba(100,70,40,0.4); }
+    .nav-btn.left:hover  { transform: translateY(-50%) translateX(-2px); }
+    .nav-btn.right:hover { transform: translateY(-50%) translateX(2px); }
+    .nav-btn:active { opacity: 0.7; }
+
+    /* ── Bottom bar ── */
+    .bottom-bar {
+      flex-shrink: 0;
+      padding: 10px 28px 20px;
+      display: flex; align-items: center; justify-content: space-between;
+    }
+
+    .dots { display: flex; gap: 8px; align-items: center; }
+    .dot {
+      height: 7px; border-radius: 999px;
+      background: rgba(100,70,40,0.22);
+      cursor: pointer;
+      transition: background 0.3s, width 0.35s cubic-bezier(0.34,1.56,0.64,1), transform 0.3s;
+      width: 7px;
+    }
+    .dot.active {
+      background: var(--amber); width: 22px;
+    }
+    .dot:not(.active):hover { background: rgba(100,70,40,0.45); transform: scale(1.2); }
+
+    .film-counter {
+      font-family: "Courier New", Courier, monospace;
+      font-size: 12px; color: var(--muted); letter-spacing: 0.1em;
+    }
+
+    /* ── Lightbox ── */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 9000;
+      display: grid; place-items: center; padding: 28px;
+      background: rgba(22,14,6,0); pointer-events: none;
+      transition: background 0.38s ease;
+    }
+    .lightbox.open { background: rgba(22,14,6,0.88); pointer-events: all; }
+
+    .lb-frame {
+      max-width: min(860px, 100%); max-height: 88svh;
+      border-radius: 4px; overflow: hidden;
+      background: #fff;
+      box-shadow: 0 40px 120px rgba(0,0,0,0.5);
+      transform: scale(0.9) translateY(18px); opacity: 0;
+      transition: transform 0.42s cubic-bezier(0.22,1,0.36,1), opacity 0.38s ease;
+      display: grid; grid-template-rows: 1fr auto;
+    }
+    .lightbox.open .lb-frame { transform: scale(1) translateY(0); opacity: 1; }
+
+    #lbImg {
+      max-height: calc(88svh - 62px);
+      width: 100%; object-fit: contain; display: block;
+      background: #f5ede2; padding: 18px;
+    }
+    .lb-bar {
+      height: 62px; display: flex; align-items: center;
+      justify-content: space-between; padding: 0 20px; gap: 12px;
+      border-top: 1px solid rgba(0,0,0,0.07);
+    }
+    .lb-caption { font-size: 14px; color: var(--ink); letter-spacing: 0.04em; }
+    .lb-num { font-family: "Courier New", monospace; font-size: 12px; color: var(--muted); }
+    .lb-close {
+      width: 34px; height: 34px; border-radius: 50%;
+      border: 1px solid rgba(0,0,0,0.15); background: rgba(0,0,0,0.05);
+      font-size: 15px; color: var(--ink); cursor: pointer;
+      display: grid; place-items: center;
+      transition: background 0.2s, transform 0.2s; flex-shrink: 0;
+    }
+    .lb-close:hover { background: rgba(0,0,0,0.11); transform: scale(1.08); }
+
+    /* ── Hint ── */
+    .hint {
+      position: fixed; bottom: 72px; left: 50%; transform: translateX(-50%);
+      z-index: 15; pointer-events: none;
+      padding: 7px 16px; border-radius: 999px;
+      border: 1px solid rgba(100,70,40,0.18);
+      background: rgba(255,255,255,0.7); backdrop-filter: blur(8px);
+      font-size: 11px; color: var(--muted); letter-spacing: 0.05em;
+      animation: hintFade 4.5s ease forwards;
+    }
+    @keyframes hintFade {
+      0%   { opacity: 0; }
+      12%  { opacity: 1; }
+      70%  { opacity: 1; }
+      100% { opacity: 0; }
+    }
+  </style>
+</head>
+<body>
+
+<canvas id="inkCanvas"></canvas>
+<div class="grain"></div>
+
+<div class="page">
+  <header>
+    <div class="wordmark">🐷 はぎのギャラリー <em>GALLERY</em></div>
+    <div class="header-btns">
+      <button class="pill" id="toggleBtn">⏸ 停止</button>
+      <a class="pill" href="index.html">← トップ</a>
+    </div>
+  </header>
+
+  <div class="stage" id="stage">
+    <button class="nav-btn left"  id="prevBtn" aria-label="前へ">‹</button>
+    <button class="nav-btn right" id="nextBtn" aria-label="次へ">›</button>
+    <div class="track" id="track"></div>
+  </div>
+
+  <div class="bottom-bar">
+    <div class="dots"         id="dots"></div>
+    <div class="film-counter" id="counter">01 / 08</div>
+  </div>
+</div>
+
+<!-- Lightbox -->
+<div class="lightbox" id="lightbox">
+  <div class="lb-frame">
+    <img id="lbImg" src="" alt="">
+    <div class="lb-bar">
+      <span class="lb-caption" id="lbCaption">—</span>
+      <span class="lb-num"     id="lbNum"></span>
+      <button class="lb-close" id="lbClose" aria-label="閉じる">✕</button>
+    </div>
+  </div>
+</div>
+
+<div class="hint">← → でナビゲート · Space で停止/再開 · 中央をクリックで拡大</div>
+
+<script>
+(function () {
+
+  /* ─────────────────────────────
+     Data
+  ───────────────────────────── */
+  var data = [
+    { src: 'g1.jpg', cap: 'はぎ / No.01' },
+    { src: 'g2.jpg', cap: 'はぎ / No.02' },
+    { src: 'g3.jpg', cap: 'はぎ / No.03' },
+    { src: 'g4.jpg', cap: 'はぎ / No.04' },
+    { src: 'g5.jpg', cap: 'はぎ / No.05' },
+    { src: 'g6.jpg', cap: 'はぎ / No.06' },
+    { src: 'g7.jpg', cap: 'はぎ / No.07' },
+    { src: 'g8.jpg', cap: 'はぎ / No.08' },
+  ];
+  var N = data.length;
+
+  /* Each polaroid has its own authentic tilt angle */
+  var staticTilts = [2.2, -1.6, 0.9, -2.4, 1.8, -0.7, 2.9, -1.3];
+
+  /* ─────────────────────────────
+     Watercolor ink canvas
+  ───────────────────────────── */
+  var cvs  = document.getElementById('inkCanvas');
+  var ctx  = cvs.getContext('2d');
+  var blobs = [];
+  var inkPalette = [
+    [210, 160, 100], // amber
+    [230, 185, 135], // peach
+    [200, 150, 145], // dusty rose
+    [162, 192, 152], // sage
+    [242, 212, 165], // cream
+    [192, 162, 195], // lavender mist
+  ];
+
+  function resizeCvs() { cvs.width = innerWidth; cvs.height = innerHeight; }
+  resizeCvs();
+  addEventListener('resize', resizeCvs);
+
+  function spawnBlob() {
+    var c = inkPalette[Math.floor(Math.random() * inkPalette.length)];
+    blobs.push({
+      x: Math.random() * cvs.width,
+      y: Math.random() * cvs.height,
+      r: 8,
+      maxR: 55 + Math.random() * 90,
+      r0: [c[0], c[1], c[2]],
+      a: 0.62,
+    });
+  }
+
+  function drawBlobs() {
+    ctx.clearRect(0, 0, cvs.width, cvs.height);
+    for (var i = blobs.length - 1; i >= 0; i--) {
+      var b = blobs[i];
+      var g = ctx.createRadialGradient(b.x, b.y, 0, b.x, b.y, b.r);
+      g.addColorStop(0,   'rgba(' + b.r0 + ',' + b.a + ')');
+      g.addColorStop(0.45,'rgba(' + b.r0 + ',' + (b.a * 0.38) + ')');
+      g.addColorStop(1,   'rgba(' + b.r0 + ',0)');
+      ctx.beginPath();
+      ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+      ctx.fillStyle = g;
+      ctx.fill();
+      b.r += 0.32;
+      b.a -= 0.0038;
+      if (b.r >= b.maxR || b.a <= 0) blobs.splice(i, 1);
+    }
+    if (Math.random() < 0.28) spawnBlob();
+    requestAnimationFrame(drawBlobs);
+  }
+  drawBlobs();
+
+  /* ─────────────────────────────
+     Gallery constants
+  ───────────────────────────── */
+  var N_SETS = 3;
+  var TOTAL  = N * N_SETS;
+
+  var track    = document.getElementById('track');
+  var stageEl  = document.getElementById('stage');
+  var dotsEl   = document.getElementById('dots');
+  var counterEl= document.getElementById('counter');
+
+  /* ─────────────────────────────
+     Build 3×8 cards
+  ───────────────────────────── */
+  var cardEls = []; // { el, srcIdx }
+
+  for (var s = 0; s < N_SETS; s++) {
+    for (var i = 0; i < N; i++) {
+      (function (srcIdx) {
+        var d    = data[srcIdx];
+        var card = document.createElement('div');
+        card.className = 'card';
+        card.innerHTML =
+          '<div class="card-inner">' +
+            '<div class="card-img-wrap"><img src="' + d.src + '" alt="' + d.cap + '" loading="eager"></div>' +
+            '<div class="card-label">' + d.cap + '</div>' +
+          '</div>';
+        card.addEventListener('click', function () {
+          if (card.classList.contains('is-center')) openLB(srcIdx);
+        });
+        track.appendChild(card);
+        cardEls.push({ el: card, srcIdx: srcIdx });
+      }(i));
+    }
+  }
+
+  /* Dots */
+  var dotEls = [];
+  for (var di = 0; di < N; di++) {
+    (function (idx) {
+      var dot = document.createElement('div');
+      dot.className = 'dot';
+      dot.addEventListener('click', function () { snapToSrc(idx); });
+      dotsEl.appendChild(dot);
+      dotEls.push(dot);
+    }(di));
+  }
+
+  /* ─────────────────────────────
+     Layout dimensions (responsive)
+  ───────────────────────────── */
+  var CARD_W, GAP, STEP, LABEL_H;
+
+  function computeDims() {
+    CARD_W  = Math.min(280, stageEl.offsetWidth * 0.68);
+    GAP     = Math.max(28, CARD_W * 0.15);
+    STEP    = CARD_W + GAP;
+    LABEL_H = Math.round(CARD_W * 0.18);
+    track.style.width = (TOTAL * STEP) + 'px';
+
+    cardEls.forEach(function (c, j) {
+      c.el.style.width = CARD_W + 'px';
+      c.el.querySelector('.card-label').style.height = LABEL_H + 'px';
+      c.el.style.left = (j * STEP) + 'px';
+    });
+  }
+
+  /* ─────────────────────────────
+     Scroll state
+  ───────────────────────────── */
+  var trackX      = 0;
+  var targetX     = 0;
+  var snapMode    = false;
+  var SCROLL_SPEED = 0.6; // px per frame at 60fps ≈ 36px/sec
+  var playing     = true;
+  var hovered     = false;
+  var curSrcIdx   = 0;
+
+  function initPosition() {
+    /* center on card[N] = first card of middle set */
+    trackX = stageEl.offsetWidth / 2 - N * STEP - CARD_W / 2;
+    targetX = trackX;
+  }
+
+  /* ─────────────────────────────
+     Per-frame depth effect
+  ───────────────────────────── */
+  function applyDepth() {
+    var screenCenter = stageEl.offsetWidth / 2;
+    var bestGlobal = 0, bestDist = Infinity;
+
+    cardEls.forEach(function (c, j) {
+      var cardCenter = j * STEP + CARD_W / 2 + trackX;
+      var dist = Math.abs(screenCenter - cardCenter);
+
+      if (dist > bestDist === false && dist < bestDist) {
+        bestDist = dist; bestGlobal = j;
+      }
+
+      var maxDist = STEP * 2.2;
+      if (dist > maxDist + CARD_W) {
+        c.el.style.visibility = 'hidden';
+        return;
+      }
+      c.el.style.visibility = '';
+
+      var t       = Math.min(dist / maxDist, 1);
+      var scale   = 1 - t * 0.38;
+      var opacity = Math.max(0, 1 - t * 0.74);
+      var blur    = t * 4.5;
+      var tilt    = staticTilts[c.srcIdx] * t;
+      var ty      = -50 + t * 9; // slight vertical drift
+
+      c.el.style.transform = 'translateY(' + ty + '%) rotate(' + tilt.toFixed(2) + 'deg) scale(' + scale.toFixed(3) + ')';
+      c.el.style.opacity   = opacity.toFixed(3);
+      c.el.style.filter    = blur > 0.25 ? 'blur(' + blur.toFixed(1) + 'px)' : '';
+      c.el.classList.toggle('is-center', dist < STEP * 0.38);
+    });
+
+    var newSrc = cardEls[bestGlobal] ? cardEls[bestGlobal].srcIdx : 0;
+    if (newSrc !== curSrcIdx) {
+      curSrcIdx = newSrc;
+      dotEls.forEach(function (d, i) { d.classList.toggle('active', i === curSrcIdx); });
+      counterEl.textContent = pad2(curSrcIdx + 1) + ' / ' + pad2(N);
+    }
+  }
+
+  function pad2(n) { return n < 10 ? '0' + n : '' + n; }
+
+  /* ─────────────────────────────
+     Normalize (3-set infinite loop)
+  ───────────────────────────── */
+  function normalize() {
+    var screenCenter = stageEl.offsetWidth / 2;
+    var best = 0, bestDist = Infinity;
+    cardEls.forEach(function (c, j) {
+      var cc = j * STEP + CARD_W / 2 + trackX;
+      var d  = Math.abs(screenCenter - cc);
+      if (d < bestDist) { bestDist = d; best = j; }
+    });
+    if (best < N) {
+      /* drifted into set A → jump to set B */
+      trackX  += N * STEP;
+      targetX += N * STEP;
+    } else if (best >= 2 * N) {
+      /* drifted into set C → jump to set B */
+      trackX  -= N * STEP;
+      targetX -= N * STEP;
+    }
+  }
+
+  /* ─────────────────────────────
+     Animation loop
+  ───────────────────────────── */
+  function frame() {
+    if (snapMode) {
+      var diff = targetX - trackX;
+      if (Math.abs(diff) < 0.25) {
+        trackX = targetX;
+        snapMode = false;
+      } else {
+        trackX += diff * 0.11;
+      }
+    } else if (playing && !hovered) {
+      trackX -= SCROLL_SPEED;
+    }
+
+    normalize();
+    track.style.transform = 'translateX(' + trackX.toFixed(2) + 'px)';
+    applyDepth();
+    requestAnimationFrame(frame);
+  }
+
+  /* ─────────────────────────────
+     Navigation
+  ───────────────────────────── */
+  function getClosestGlobal() {
+    var sc = stageEl.offsetWidth / 2;
+    var best = 0, bestDist = Infinity;
+    cardEls.forEach(function (c, j) {
+      var cc = j * STEP + CARD_W / 2 + trackX;
+      var d  = Math.abs(sc - cc);
+      if (d < bestDist) { bestDist = d; best = j; }
+    });
+    return best;
+  }
+
+  function snapToGlobal(g) {
+    targetX  = stageEl.offsetWidth / 2 - g * STEP - CARD_W / 2;
+    snapMode = true;
+  }
+
+  function moveBy(dir) {
+    var g = getClosestGlobal() + dir;
+    g = ((g % TOTAL) + TOTAL) % TOTAL;
+    snapToGlobal(g);
+  }
+
+  function snapToSrc(srcIdx) {
+    var sc = stageEl.offsetWidth / 2;
+    var best = 0, bestDist = Infinity;
+    cardEls.forEach(function (c, j) {
+      if (c.srcIdx !== srcIdx) return;
+      var cc = j * STEP + CARD_W / 2 + trackX;
+      var d  = Math.abs(sc - cc);
+      if (d < bestDist) { bestDist = d; best = j; }
+    });
+    snapToGlobal(best);
+  }
+
+  /* ─────────────────────────────
+     Controls
+  ───────────────────────────── */
+  document.getElementById('prevBtn').addEventListener('click', function () { moveBy(-1); });
+  document.getElementById('nextBtn').addEventListener('click', function () { moveBy(1); });
+
+  var toggleBtn = document.getElementById('toggleBtn');
+  toggleBtn.addEventListener('click', function () {
+    playing = !playing;
+    toggleBtn.textContent = playing ? '⏸ 停止' : '▶ 再開';
+  });
+
+  /* Pause on hover */
+  stageEl.addEventListener('mouseenter', function () { hovered = true; });
+  stageEl.addEventListener('mouseleave', function () { hovered = false; });
+
+  /* Touch swipe */
+  var touchX0 = 0;
+  stageEl.addEventListener('touchstart', function (e) { touchX0 = e.touches[0].clientX; }, { passive: true });
+  stageEl.addEventListener('touchend',   function (e) {
+    var dx = e.changedTouches[0].clientX - touchX0;
+    if (Math.abs(dx) > 38) moveBy(dx < 0 ? 1 : -1);
+  }, { passive: true });
+
+  /* Keyboard */
+  document.addEventListener('keydown', function (e) {
+    if (document.getElementById('lightbox').classList.contains('open')) {
+      if (e.key === 'Escape') closeLB();
+      return;
+    }
+    if (e.key === 'ArrowRight') { moveBy(1); }
+    if (e.key === 'ArrowLeft')  { moveBy(-1); }
+    if (e.key === ' ')          { e.preventDefault(); toggleBtn.click(); }
+  });
+
+  /* ─────────────────────────────
+     Lightbox
+  ───────────────────────────── */
+  var lightbox  = document.getElementById('lightbox');
+  var lbImg     = document.getElementById('lbImg');
+  var lbCaption = document.getElementById('lbCaption');
+  var lbNum     = document.getElementById('lbNum');
+
+  function openLB(srcIdx) {
+    lbImg.src        = data[srcIdx].src;
+    lbCaption.textContent = data[srcIdx].cap;
+    lbNum.textContent = pad2(srcIdx + 1) + ' / ' + pad2(N);
+    lightbox.classList.add('open');
+  }
+  function closeLB() { lightbox.classList.remove('open'); }
+
+  document.getElementById('lbClose').addEventListener('click', closeLB);
+  lightbox.addEventListener('click', function (e) { if (e.target === lightbox) closeLB(); });
+
+  /* ─────────────────────────────
+     Resize
+  ───────────────────────────── */
+  addEventListener('resize', function () {
+    computeDims();
+    snapToSrc(curSrcIdx);
+  });
+
+  /* ─────────────────────────────
+     Init
+  ───────────────────────────── */
+  computeDims();
+  initPosition();
+  dotEls[0].classList.add('active');
+  frame();
+
+}());
+</script>
+</body>
+</html>

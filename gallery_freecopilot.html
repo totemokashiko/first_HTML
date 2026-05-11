@@ -1,0 +1,385 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <title>はぎのギャラリー</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Yu Gothic", sans-serif;
+      background: #c8ffbf;
+      overflow: hidden;
+      color: #333;
+      text-align: center;
+    }
+
+    h1 {
+      margin: 20px 0;
+      font-size: 28px;
+      color: #444;
+      z-index: 10;
+      position: relative;
+    }
+
+    /* 花のにじみ背景 */
+    #flowers {
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100vw;
+      height: 100vh;
+      z-index: 0;
+      pointer-events: none;
+    }
+
+    /* ギャラリー全体 */
+    .gallery-container {
+      position: relative;
+      width: 100%;
+      margin-top: 20px;
+      z-index: 5;
+    }
+
+    .gallery-track {
+      position: relative;
+      height: 360px;
+      will-change: transform;
+      transition: transform 1s ease-in-out;
+    }
+
+    /* 正方形300pxの枠 */
+    .item {
+      position: absolute;
+      top: 20px;
+      width: 300px;
+      height: 300px;
+      text-align: center;
+    }
+
+    /* 正方形の中で中央フィットさせるラッパー */
+    .img-wrap {
+      width: 100%;
+      height: 100%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      background: transparent;
+    }
+
+    /* 画像は縦横比維持・見切れなし・余白透明 */
+    .img-wrap img {
+      max-width: 100%;
+      max-height: 100%;
+      object-fit: contain;
+      background: transparent;
+      border-radius: 16px;
+      transition: transform 0.25s, opacity 0.25s, filter 0.25s;
+    }
+
+    .caption {
+      margin-top: 8px;
+      font-size: 16px;
+      opacity: 0.85;
+    }
+
+    /* PC用左右ボタン */
+    .btn {
+      position: absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      background: rgba(255,255,255,0.95);
+      border: none;
+      font-size: 30px;
+      padding: 10px 15px;
+      border-radius: 50%;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+      transition: 0.2s;
+      z-index: 2000;
+    }
+
+    .btn:hover {
+      background: #fff;
+      transform: translateY(-50%) scale(1.1);
+    }
+
+    .left { left: 10px; }
+    .right { right: 10px; }
+
+    /* 停止ボタン */
+    .toggle-btn {
+      position: fixed;
+      bottom: 20px;
+      right: 20px;
+      background: rgba(255,255,255,0.95);
+      color: #333;
+      border: none;
+      font-size: 20px;
+      padding: 10px 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 2000;
+    }
+
+    /* トップに戻るボタン（index.htmlへ） */
+    .back-btn {
+      position: fixed;
+      bottom: 20px;
+      left: 20px;
+      background: rgba(255,255,255,0.95);
+      color: #333;
+      border: none;
+      font-size: 16px;
+      padding: 8px 16px;
+      border-radius: 10px;
+      cursor: pointer;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.3);
+      z-index: 2000;
+      text-decoration: none;
+    }
+  </style>
+</head>
+
+<body>
+
+  <canvas id="flowers"></canvas>
+
+  <h1>📸 はぎのギャラリー</h1>
+
+  <div class="gallery-container">
+
+    <button class="btn left">‹</button>
+    <button class="btn right">›</button>
+
+    <div class="gallery-track" id="track">
+
+      <!-- 3セット構成（無限ループ完全対応） -->
+      <!-- セットA -->
+      <div class="item"><div class="img-wrap"><img src="g1.jpg"></div><div class="caption">説明1</div></div>
+      <div class="item"><div class="img-wrap"><img src="g2.jpg"></div><div class="caption">説明2</div></div>
+      <div class="item"><div class="img-wrap"><img src="g3.jpg"></div><div class="caption">説明3</div></div>
+      <div class="item"><div class="img-wrap"><img src="g4.jpg"></div><div class="caption">説明4</div></div>
+      <div class="item"><div class="img-wrap"><img src="g5.jpg"></div><div class="caption">説明5</div></div>
+      <div class="item"><div class="img-wrap"><img src="g6.jpg"></div><div class="caption">説明6</div></div>
+      <div class="item"><div class="img-wrap"><img src="g7.jpg"></div><div class="caption">説明7</div></div>
+      <div class="item"><div class="img-wrap"><img src="g8.jpg"></div><div class="caption">説明8</div></div>
+
+      <!-- セットB（中央セット） -->
+      <div class="item"><div class="img-wrap"><img src="g1.jpg"></div><div class="caption">説明1</div></div>
+      <div class="item"><div class="img-wrap"><img src="g2.jpg"></div><div class="caption">説明2</div></div>
+      <div class="item"><div class="img-wrap"><img src="g3.jpg"></div><div class="caption">説明3</div></div>
+      <div class="item"><div class="img-wrap"><img src="g4.jpg"></div><div class="caption">説明4</div></div>
+      <div class="item"><div class="img-wrap"><img src="g5.jpg"></div><div class="caption">説明5</div></div>
+      <div class="item"><div class="img-wrap"><img src="g6.jpg"></div><div class="caption">説明6</div></div>
+      <div class="item"><div class="img-wrap"><img src="g7.jpg"></div><div class="caption">説明7</div></div>
+      <div class="item"><div class="img-wrap"><img src="g8.jpg"></div><div class="caption">説明8</div></div>
+
+      <!-- セットC -->
+      <div class="item"><div class="img-wrap"><img src="g1.jpg"></div><div class="caption">説明1</div></div>
+      <div class="item"><div class="img-wrap"><img src="g2.jpg"></div><div class="caption">説明2</div></div>
+      <div class="item"><div class="img-wrap"><img src="g3.jpg"></div><div class="caption">説明3</div></div>
+      <div class="item"><div class="img-wrap"><img src="g4.jpg"></div><div class="caption">説明4</div></div>
+      <div class="item"><div class="img-wrap"><img src="g5.jpg"></div><div class="caption">説明5</div></div>
+      <div class="item"><div class="img-wrap"><img src="g6.jpg"></div><div class="caption">説明6</div></div>
+      <div class="item"><div class="img-wrap"><img src="g7.jpg"></div><div class="caption">説明7</div></div>
+      <div class="item"><div class="img-wrap"><img src="g8.jpg"></div><div class="caption">説明8</div></div>
+
+    </div>
+  </div>
+
+  <button class="toggle-btn" id="toggle">⏸ 停止予約</button>
+  <a href="index.html" class="back-btn">トップに戻る</a>
+
+  <script>
+    /* 花のにじみ背景 */
+    const canvas = document.getElementById("flowers");
+    const ctx = canvas.getContext("2d");
+
+    function resizeCanvas() {
+      canvas.width = window.innerWidth;
+      canvas.height = window.innerHeight;
+    }
+    resizeCanvas();
+    window.addEventListener("resize", resizeCanvas);
+
+    const blooms = [];
+    const colors = [
+      "rgba(255,150,180,0.9)",
+      "rgba(255,200,120,0.9)",
+      "rgba(255,240,150,0.9)",
+      "rgba(200,180,255,0.9)",
+      "rgba(150,220,255,0.9)",
+      "rgba(180,255,200,0.9)",
+      "rgba(200,255,180,0.9)"
+    ];
+
+    function createBloom() {
+      blooms.push({
+        x: Math.random() * canvas.width,
+        y: Math.random() * canvas.height,
+        r: 8,
+        maxR: Math.random() * 50 + 30,
+        color: colors[Math.floor(Math.random() * colors.length)],
+        alpha: 0.9
+      });
+    }
+
+    function drawBlooms() {
+      ctx.clearRect(0, 0, canvas.width, canvas.height);
+
+      blooms.forEach((b, i) => {
+        ctx.beginPath();
+        ctx.arc(b.x, b.y, b.r, 0, Math.PI * 2);
+        ctx.fillStyle = b.color;
+        ctx.globalAlpha = b.alpha;
+        ctx.fill();
+
+        b.r += 0.45;
+        b.alpha -= 0.006;
+
+        if (b.r > b.maxR || b.alpha <= 0) {
+          blooms.splice(i, 1);
+        }
+      });
+
+      ctx.globalAlpha = 1.0;
+
+      if (Math.random() < 0.35) createBloom();
+
+      requestAnimationFrame(drawBlooms);
+    }
+    drawBlooms();
+
+    /* ギャラリー本体（3セット無限ループ） */
+    const track = document.getElementById("track");
+    const items = Array.from(track.querySelectorAll(".item"));
+    const leftBtn = document.querySelector(".left");
+    const rightBtn = document.querySelector(".right");
+    const toggleBtn = document.getElementById("toggle");
+
+    const itemSize = 300;
+    const gap = 40;
+    const step = itemSize + gap;
+
+    const base = 8;               // 1セットの枚数
+    let index = base;             // 真ん中のセットから開始
+    let autoPlay = true;
+    let stopRequested = false;
+    let autoTimer = null;
+
+    // 絶対配置
+    items.forEach((item, i) => {
+      item.style.left = (i * step) + "px";
+    });
+
+    function applyDepthEffect() {
+      const center = window.innerWidth / 2;
+
+      items.forEach(item => {
+        const img = item.querySelector("img");
+        const rect = img.getBoundingClientRect();
+        const imgCenter = rect.left + rect.width / 2;
+        const distance = Math.abs(center - imgCenter);
+
+        const scale = Math.max(0.6, 1.6 - distance / 300);
+        const opacity = Math.max(0.3, 1.3 - distance / 300);
+        const blur = Math.min(6, distance / 120);
+
+        img.style.transform = `scale(${scale})`;
+        img.style.opacity = opacity;
+        img.style.filter = `blur(${blur}px)`;
+      });
+    }
+
+    function moveToIndex(instant = false) {
+      const containerCenter = window.innerWidth / 2;
+      const targetCenter = index * step + itemSize / 2;
+      const offset = containerCenter - targetCenter;
+
+      if (instant) {
+        track.style.transition = "none";
+        track.style.transform = `translateX(${offset}px)`;
+        setTimeout(() => {
+          track.style.transition = "transform 1s ease-in-out";
+          applyDepthEffect();
+        }, 20);
+      } else {
+        track.style.transform = `translateX(${offset}px)`;
+      }
+    }
+
+    // スライド完了後に奥行きを再計算
+    track.addEventListener("transitionend", applyDepthEffect);
+
+    function normalizeIndex() {
+      if (index < base) {
+        index += base;
+        moveToIndex(true);
+      }
+      if (index >= base * 2) {
+        index -= base;
+        moveToIndex(true);
+      }
+    }
+
+    function scheduleNext() {
+      if (!autoPlay) return;
+      autoTimer = setTimeout(() => {
+        nextSlide();
+      }, 3500);
+    }
+
+    function nextSlide() {
+      if (!autoPlay) return;
+
+      index++;
+      normalizeIndex();
+      moveToIndex();
+
+      if (stopRequested) {
+        autoPlay = false;
+        stopRequested = false;
+        toggleBtn.textContent = "▶ 再開";
+        return;
+      }
+
+      scheduleNext();
+    }
+
+    moveToIndex(true);
+    scheduleNext();
+
+    rightBtn.onclick = () => {
+      clearTimeout(autoTimer);
+      index++;
+      normalizeIndex();
+      moveToIndex();
+      if (autoPlay) scheduleNext();
+    };
+
+    leftBtn.onclick = () => {
+      clearTimeout(autoTimer);
+      index--;
+      normalizeIndex();
+      moveToIndex();
+      if (autoPlay) scheduleNext();
+    };
+
+    toggleBtn.onclick = () => {
+      if (autoPlay) {
+        stopRequested = true;
+        toggleBtn.textContent = "⏸ 停止予約中…";
+      } else {
+        autoPlay = true;
+        toggleBtn.textContent = "⏸ 停止";
+        scheduleNext();
+      }
+    };
+
+    window.addEventListener("resize", () => moveToIndex(true));
+  </script>
+
+</body>
+</html>

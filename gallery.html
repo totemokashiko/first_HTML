@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>はぎのギャラリー</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --pink-light: #fce8f0;
+      --pink-mid: #f4a7c0;
+      --pink-strong: #d9527a;
+      --cream: #fdf8f4;
+      --text-dark: #2a1a20;
+      --text-mid: #7a5060;
+      --text-light: #b08898;
+      --card-bg: rgba(255,255,255,0.72);
+      --shadow: 0 8px 40px rgba(180,80,110,0.10);
+    }
+
+    html, body {
+      height: 100%;
+      overflow: hidden;
+    }
+
+    body {
+      font-family: "Hiragino Kaku Gothic ProN", "Yu Gothic", sans-serif;
+      background: #f9eaf1;
+      color: var(--text-dark);
+    }
+
+    /* ── 背景 ── */
+    .bg-canvas {
+      position: fixed; inset: 0; z-index: 0;
+      background: linear-gradient(160deg, #fce8f5 0%, #f9eaf1 40%, #fdeef5 100%);
+    }
+
+    /* 浮かぶ泡 */
+    .bubbles {
+      position: fixed; inset: 0; z-index: 1; pointer-events: none; overflow: hidden;
+    }
+    .bubble {
+      position: absolute;
+      bottom: -80px;
+      border-radius: 50%;
+      opacity: 0;
+      animation: rise linear infinite;
+    }
+    @keyframes rise {
+      0%   { transform: translateY(0) scale(1);   opacity: 0; }
+      10%  { opacity: 0.55; }
+      90%  { opacity: 0.3; }
+      100% { transform: translateY(-110vh) scale(0.6); opacity: 0; }
+    }
+
+    /* ── ヘッダー ── */
+    header {
+      position: relative; z-index: 10;
+      padding: 28px 0 0;
+      text-align: center;
+      pointer-events: none;
+    }
+    .pig-icon { font-size: 34px; display: block; margin-bottom: 4px; }
+    h1 {
+      font-size: 22px; font-weight: 700; letter-spacing: 0.04em;
+      color: var(--text-dark);
+    }
+    .subtitle {
+      font-size: 13px; color: var(--text-light); margin-top: 3px; letter-spacing: 0.05em;
+    }
+
+    /* ── ギャラリー ── */
+    .stage {
+      position: relative; z-index: 5;
+      width: 100%; margin-top: 24px;
+      height: calc(100vh - 170px);
+      display: flex; align-items: center; justify-content: center;
+      perspective: 900px;
+      overflow: hidden;
+    }
+
+    .carousel {
+      position: relative;
+      width: 100%; height: 100%;
+      display: flex; align-items: center;
+    }
+
+    /* 各カード */
+    .card {
+      position: absolute;
+      width: 260px;
+      background: var(--card-bg);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      border-radius: 22px;
+      border: 1.5px solid rgba(255,255,255,0.85);
+      box-shadow: var(--shadow);
+      overflow: hidden;
+      cursor: pointer;
+      will-change: transform, opacity;
+      transition: transform 0.55s cubic-bezier(0.45,0.05,0.10,1.0),
+                  opacity  0.55s cubic-bezier(0.45,0.05,0.10,1.0),
+                  box-shadow 0.3s;
+      user-select: none;
+    }
+
+    .card:hover { box-shadow: 0 16px 60px rgba(180,80,110,0.18); }
+
+    .card-img-wrap {
+      width: 100%;
+      aspect-ratio: 3/4;
+      overflow: hidden;
+      background: #f5dde9;
+      position: relative;
+    }
+
+    .card-img-wrap img {
+      width: 100%; height: 100%;
+      object-fit: cover;
+      object-position: center;
+      display: block;
+      transition: transform 0.6s ease;
+    }
+    .card:hover .card-img-wrap img { transform: scale(1.04); }
+
+    .card-body {
+      padding: 14px 16px 16px;
+    }
+    .card-caption {
+      font-size: 13px;
+      color: var(--text-mid);
+      line-height: 1.6;
+      text-align: center;
+    }
+
+    /* 中央カードのハイライト */
+    .card.is-center {
+      box-shadow: 0 20px 70px rgba(180,60,100,0.22);
+      border-color: rgba(255,255,255,1);
+      z-index: 20 !important;
+    }
+
+    /* ── ドットインジケーター ── */
+    .dots {
+      position: relative; z-index: 10;
+      display: flex; justify-content: center; gap: 7px;
+      margin-top: 16px;
+    }
+    .dot {
+      width: 7px; height: 7px; border-radius: 50%;
+      background: var(--pink-mid); opacity: 0.35;
+      transition: opacity 0.3s, transform 0.3s;
+      cursor: pointer;
+    }
+    .dot.active { opacity: 1; transform: scale(1.3); background: var(--pink-strong); }
+
+    /* ── コントロール ── */
+    .controls {
+      position: fixed; bottom: 28px; left: 50%; transform: translateX(-50%);
+      z-index: 100;
+      display: flex; align-items: center; gap: 14px;
+    }
+
+    .ctrl-btn {
+      width: 48px; height: 48px; border-radius: 50%;
+      border: 1.5px solid rgba(255,255,255,0.9);
+      background: rgba(255,255,255,0.85);
+      backdrop-filter: blur(10px);
+      -webkit-backdrop-filter: blur(10px);
+      color: var(--text-dark);
+      font-size: 22px;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer;
+      box-shadow: 0 4px 18px rgba(180,80,110,0.14);
+      transition: transform 0.18s, box-shadow 0.18s, background 0.18s;
+      line-height: 1;
+      -webkit-tap-highlight-color: transparent;
+    }
+    .ctrl-btn:hover { background: #fff; transform: scale(1.08); }
+    .ctrl-btn:active { transform: scale(0.94); }
+
+    .play-btn {
+      width: 56px; height: 56px; font-size: 20px;
+      background: var(--pink-strong);
+      border-color: var(--pink-strong);
+      color: #fff;
+    }
+    .play-btn:hover { background: #c44470; border-color: #c44470; }
+
+    /* 戻るボタン */
+    .back-btn {
+      position: fixed; top: 22px; left: 20px; z-index: 200;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(8px);
+      border: 1.5px solid rgba(255,255,255,0.9);
+      color: var(--text-mid);
+      font-size: 13px;
+      padding: 7px 14px;
+      border-radius: 30px;
+      text-decoration: none;
+      box-shadow: 0 2px 12px rgba(180,80,110,0.10);
+      transition: background 0.2s;
+    }
+    .back-btn:hover { background: #fff; }
+
+    /* ── ライトボックス ── */
+    .lightbox {
+      position: fixed; inset: 0; z-index: 500;
+      background: rgba(25,8,15,0.80);
+      display: flex; align-items: center; justify-content: center;
+      opacity: 0; pointer-events: none;
+      transition: opacity 0.3s;
+    }
+    .lightbox.show { opacity: 1; pointer-events: all; }
+    .lightbox-img {
+      max-width: 88vw; max-height: 82vh;
+      border-radius: 18px;
+      object-fit: contain;
+      box-shadow: 0 30px 80px rgba(0,0,0,0.5);
+      transform: scale(0.92);
+      transition: transform 0.3s;
+    }
+    .lightbox.show .lightbox-img { transform: scale(1); }
+    .lightbox-caption {
+      position: absolute; bottom: 40px;
+      color: rgba(255,255,255,0.75);
+      font-size: 14px; letter-spacing: 0.05em;
+    }
+    .lightbox-close {
+      position: absolute; top: 24px; right: 28px;
+      background: rgba(255,255,255,0.12);
+      border: 1.5px solid rgba(255,255,255,0.25);
+      color: #fff; font-size: 22px;
+      width: 44px; height: 44px; border-radius: 50%;
+      display: flex; align-items: center; justify-content: center;
+      cursor: pointer; transition: background 0.2s;
+    }
+    .lightbox-close:hover { background: rgba(255,255,255,0.22); }
+  </style>
+</head>
+
+<body>
+  <div class="bg-canvas"></div>
+  <div class="bubbles" id="bubbles"></div>
+
+  <a href="index.html" class="back-btn">← トップ</a>
+
+  <header>
+    <span class="pig-icon">🐷</span>
+    <h1>はぎのギャラリー</h1>
+    <p class="subtitle">my micro pig moments</p>
+  </header>
+
+  <div class="stage" id="stage">
+    <div class="carousel" id="carousel"></div>
+  </div>
+
+  <div class="dots" id="dots"></div>
+
+  <div class="controls">
+    <button class="ctrl-btn" id="btnLeft" aria-label="前へ">&#8249;</button>
+    <button class="ctrl-btn play-btn" id="btnPlay" aria-label="再生/停止">⏸</button>
+    <button class="ctrl-btn" id="btnRight" aria-label="次へ">&#8250;</button>
+  </div>
+
+  <div class="lightbox" id="lightbox">
+    <button class="lightbox-close" id="lbClose" aria-label="閉じる">✕</button>
+    <img class="lightbox-img" id="lbImg" src="" alt="">
+    <p class="lightbox-caption" id="lbCaption"></p>
+  </div>
+
+  <script>
+    /* ── データ ── */
+    const data = [
+      { src: "g1.jpg", caption: "説明1" },
+      { src: "g2.jpg", caption: "説明2" },
+      { src: "g3.jpg", caption: "説明3" },
+      { src: "g4.jpg", caption: "説明4" },
+      { src: "g5.jpg", caption: "説明5" },
+      { src: "g6.jpg", caption: "説明6" },
+      { src: "g7.jpg", caption: "説明7" },
+      { src: "g8.jpg", caption: "説明8" },
+    ];
+
+    const N = data.length;
+    let current = 0;
+    let playing = true;
+    let timer = null;
+
+    /* ── 泡 ── */
+    const bubblesEl = document.getElementById("bubbles");
+    const bColors = ["#f9c8dc","#fcdde8","#f5b0cc","#fce8f0","#fad8ea","#f4c0d8"];
+    for (let i = 0; i < 18; i++) {
+      const b = document.createElement("div");
+      b.className = "bubble";
+      const size = 14 + Math.random() * 38;
+      b.style.cssText = `
+        width:${size}px; height:${size}px;
+        left:${Math.random()*100}%;
+        background:${bColors[Math.floor(Math.random()*bColors.length)]};
+        animation-duration:${7+Math.random()*12}s;
+        animation-delay:${-Math.random()*14}s;
+      `;
+      bubblesEl.appendChild(b);
+    }
+
+    /* ── カード生成 ── */
+    const carousel = document.getElementById("carousel");
+    const dotsEl = document.getElementById("dots");
+
+    const cards = data.map((item, i) => {
+      const card = document.createElement("div");
+      card.className = "card";
+      card.innerHTML = `
+        <div class="card-img-wrap">
+          <img src="${item.src}" alt="${item.caption}" loading="lazy">
+        </div>
+        <div class="card-body">
+          <p class="card-caption">${item.caption}</p>
+        </div>
+      `;
+      card.addEventListener("click", () => openLightbox(i));
+      carousel.appendChild(card);
+
+      const dot = document.createElement("div");
+      dot.className = "dot";
+      dot.addEventListener("click", () => goTo(i));
+      dotsEl.appendChild(dot);
+
+      return card;
+    });
+
+    /* ── レイアウト ── */
+    function layout() {
+      const stageW = document.getElementById("stage").offsetWidth;
+      const stageH = document.getElementById("stage").offsetHeight;
+      const cardW = Math.min(260, stageW * 0.55);
+      const centerX = stageW / 2;
+      const visible = 5; // 見せる枚数（中心±2）
+
+      cards.forEach((card, i) => {
+        card.style.width = cardW + "px";
+
+        const diff = ((i - current + N) % N + N) % N;
+        const d = diff <= N/2 ? diff : diff - N; // -N/2 ~ N/2
+
+        if (Math.abs(d) > Math.floor(visible/2)) {
+          card.style.opacity = "0";
+          card.style.pointerEvents = "none";
+          card.style.zIndex = "0";
+          card.style.transform = `translateX(${centerX - cardW/2 + d * (cardW * 0.72)}px) translateZ(-400px) scale(0.5)`;
+          return;
+        }
+
+        const tx = centerX - cardW/2 + d * (cardW * 0.72);
+        const scale = d === 0 ? 1 : d === 1 || d === -1 ? 0.80 : 0.62;
+        const tz = d === 0 ? 0 : Math.abs(d) === 1 ? -80 : -200;
+        const opacity = d === 0 ? 1 : Math.abs(d) === 1 ? 0.75 : 0.40;
+        const zIndex = d === 0 ? 20 : Math.abs(d) === 1 ? 10 : 5;
+
+        card.style.transform = `translateX(${tx}px) translateZ(${tz}px) scale(${scale})`;
+        card.style.opacity = opacity;
+        card.style.zIndex = zIndex;
+        card.style.pointerEvents = d === 0 ? "auto" : "none";
+
+        card.classList.toggle("is-center", d === 0);
+      });
+
+      /* ドット */
+      dotsEl.querySelectorAll(".dot").forEach((dot, i) => {
+        dot.classList.toggle("active", i === current);
+      });
+    }
+
+    /* ── 移動 ── */
+    function goTo(idx) {
+      current = ((idx % N) + N) % N;
+      layout();
+    }
+
+    function next() { goTo(current + 1); }
+    function prev() { goTo(current - 1); }
+
+    /* ── 自動再生 ── */
+    function startAuto() {
+      stopAuto();
+      timer = setInterval(next, 3800);
+    }
+    function stopAuto() {
+      if (timer) { clearInterval(timer); timer = null; }
+    }
+
+    const btnPlay = document.getElementById("btnPlay");
+    btnPlay.addEventListener("click", () => {
+      playing = !playing;
+      if (playing) {
+        startAuto();
+        btnPlay.textContent = "⏸";
+        btnPlay.setAttribute("aria-label", "停止");
+      } else {
+        stopAuto();
+        btnPlay.textContent = "▶";
+        btnPlay.setAttribute("aria-label", "再生");
+      }
+    });
+
+    document.getElementById("btnLeft").addEventListener("click", () => {
+      if (playing) startAuto(); // リセット
+      prev();
+    });
+    document.getElementById("btnRight").addEventListener("click", () => {
+      if (playing) startAuto();
+      next();
+    });
+
+    /* ── タッチスワイプ ── */
+    let touchStartX = 0;
+    document.getElementById("stage").addEventListener("touchstart", e => {
+      touchStartX = e.touches[0].clientX;
+    }, { passive: true });
+    document.getElementById("stage").addEventListener("touchend", e => {
+      const dx = e.changedTouches[0].clientX - touchStartX;
+      if (Math.abs(dx) > 40) {
+        if (dx < 0) next(); else prev();
+        if (playing) startAuto();
+      }
+    }, { passive: true });
+
+    /* ── キーボード ── */
+    document.addEventListener("keydown", e => {
+      if (e.key === "ArrowRight") { next(); if (playing) startAuto(); }
+      if (e.key === "ArrowLeft")  { prev(); if (playing) startAuto(); }
+      if (e.key === " ") { btnPlay.click(); e.preventDefault(); }
+      if (e.key === "Escape") closeLightbox();
+    });
+
+    /* ── ライトボックス ── */
+    const lightbox = document.getElementById("lightbox");
+    const lbImg = document.getElementById("lbImg");
+    const lbCaption = document.getElementById("lbCaption");
+
+    function openLightbox(i) {
+      lbImg.src = data[i].src;
+      lbCaption.textContent = data[i].caption;
+      lightbox.classList.add("show");
+    }
+    function closeLightbox() {
+      lightbox.classList.remove("show");
+    }
+    document.getElementById("lbClose").addEventListener("click", closeLightbox);
+    lightbox.addEventListener("click", e => {
+      if (e.target === lightbox) closeLightbox();
+    });
+
+    /* ── 初期化 ── */
+    layout();
+    startAuto();
+    window.addEventListener("resize", layout);
+  </script>
+</body>
+</html>

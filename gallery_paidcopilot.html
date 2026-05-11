@@ -1,0 +1,741 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>HAGI — Aura Gallery</title>
+  <style>
+    :root{
+      --ink: rgba(10,14,18,.92);
+      --muted: rgba(10,14,18,.62);
+      --border: rgba(255,255,255,.45);
+      --shadow: 0 28px 90px rgba(0,0,0,.22);
+      --shadow2: 0 14px 40px rgba(0,0,0,.18);
+      --r: 26px;
+      --ease: cubic-bezier(.2,.95,.2,1);
+      --dur: 540ms;
+
+      --a1: #86ffb0;
+      --a2: #7cd9ff;
+      --a3: #ffd27a;
+      --a4: #d3a6ff;
+    }
+    *{ box-sizing:border-box; }
+    html,body{ height:100%; }
+    body{
+      margin:0;
+      font-family: ui-sans-serif, system-ui, -apple-system, "Yu Gothic", "Hiragino Kaku Gothic ProN", "Noto Sans JP", sans-serif;
+      color: var(--ink);
+      overflow:hidden;
+      background: radial-gradient(1200px 700px at 10% 10%, rgba(255,255,255,.55), transparent 60%),
+                  radial-gradient(900px 600px at 90% 20%, rgba(255,255,255,.35), transparent 60%),
+                  linear-gradient(135deg, rgba(134,255,176,.90), rgba(124,217,255,.82));
+    }
+    .aura{
+      position: fixed; inset: -20%;
+      z-index: 0;
+      background:
+        radial-gradient(900px 600px at 20% 30%, rgba(134,255,176,.75), transparent 60%),
+        radial-gradient(800px 560px at 80% 20%, rgba(124,217,255,.70), transparent 62%),
+        radial-gradient(900px 650px at 70% 80%, rgba(211,166,255,.65), transparent 65%),
+        radial-gradient(820px 540px at 25% 85%, rgba(255,210,122,.62), transparent 64%);
+      filter: blur(34px) saturate(1.15);
+      opacity: .85;
+      animation: drift 14s var(--ease) infinite alternate;
+      pointer-events:none;
+    }
+    @keyframes drift{
+      from{ transform: translate3d(-1.5%, -1.2%, 0) scale(1.02); }
+      to  { transform: translate3d( 1.6%,  1.0%, 0) scale(1.04); }
+    }
+    header{
+      position: relative;
+      z-index: 3;
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      padding: 16px 16px 10px;
+      gap: 12px;
+    }
+    .brand{
+      display:flex; align-items:center; gap:12px;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.30));
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 50px rgba(0,0,0,.12);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+    }
+    .logo{
+      width: 36px; height: 36px; border-radius: 14px;
+      display:grid; place-items:center;
+      background: linear-gradient(135deg, rgba(134,255,176,.85), rgba(124,217,255,.80));
+      box-shadow: 0 12px 26px rgba(0,0,0,.12);
+      font-size: 18px;
+    }
+    .brand h1{
+      margin:0;
+      font-size: clamp(16px, 2.3vw, 22px);
+      letter-spacing: .04em;
+      font-weight: 900;
+    }
+    .brand small{
+      display:block;
+      margin-top:2px;
+      color: var(--muted);
+      font-weight: 700;
+      font-size: 12px;
+      letter-spacing: .02em;
+    }
+    .topActions{
+      display:flex; align-items:center; gap:10px;
+    }
+    .chip{
+      border:none;
+      cursor:pointer;
+      padding: 10px 14px;
+      border-radius: 999px;
+      background: rgba(255,255,255,.62);
+      border: 1px solid var(--border);
+      box-shadow: 0 16px 50px rgba(0,0,0,.10);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      font-weight: 900;
+      color: var(--ink);
+      transition: transform .12s ease, background .12s ease;
+      white-space: nowrap;
+      text-decoration:none;
+      display:inline-flex;
+      align-items:center;
+      gap:8px;
+    }
+    .chip:hover{ transform: translateY(-1px); background: rgba(255,255,255,.78); }
+    .chip:active{ transform: translateY(0px) scale(.98); }
+
+    main{
+      position: relative;
+      z-index: 3;
+      height: calc(100svh - 74px);
+      display:grid;
+      grid-template-rows: 1fr auto;
+      gap: 12px;
+      padding: 8px 16px 16px;
+    }
+    .stage{
+      position: relative;
+      width: min(1180px, 100%);
+      margin: 0 auto;
+      border-radius: var(--r);
+      background: linear-gradient(180deg, rgba(255,255,255,.40), rgba(255,255,255,.14));
+      border: 1px solid var(--border);
+      box-shadow: var(--shadow);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      overflow:hidden;
+      user-select:none;
+      touch-action: pan-y;
+    }
+    .navBtn{
+      position:absolute;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 10;
+      width: 50px;
+      height: 50px;
+      border-radius: 999px;
+      border: 1px solid var(--border);
+      background: rgba(255,255,255,.70);
+      box-shadow: 0 18px 46px rgba(0,0,0,.15);
+      backdrop-filter: blur(12px);
+      -webkit-backdrop-filter: blur(12px);
+      cursor:pointer;
+      display:grid;
+      place-items:center;
+      font-size: 26px;
+      font-weight: 900;
+      color: var(--ink);
+      transition: transform .14s ease, background .14s ease;
+    }
+    .navBtn:hover{ transform: translateY(-50%) scale(1.06); background: rgba(255,255,255,.86); }
+    .navBtn:active{ transform: translateY(-50%) scale(.98); }
+    .navBtn.left{ left: 14px; }
+    .navBtn.right{ right: 14px; }
+
+    .rail{
+      position: relative;
+      height: 100%;
+      overflow-x:auto;
+      overflow-y:hidden;
+      scroll-snap-type: x mandatory;
+      display:flex;
+      align-items:center;
+      gap: 18px;
+      padding: 18px 18px 26px;
+      scrollbar-width: none;
+    }
+    .rail::-webkit-scrollbar{ display:none; }
+    .spacer{
+      flex: 0 0 calc((100% - min(420px, 74vw)) / 2);
+      height: 1px;
+    }
+    .card{
+      flex: 0 0 min(420px, 74vw);
+      height: min(62svh, 560px);
+      scroll-snap-align: center;
+      border-radius: 26px;
+      background: linear-gradient(180deg, rgba(255,255,255,.78), rgba(255,255,255,.22));
+      border: 1px solid rgba(255,255,255,.60);
+      box-shadow: var(--shadow2);
+      overflow:hidden;
+      transform-origin: center;
+      transition: transform var(--dur) var(--ease), filter var(--dur) var(--ease), opacity var(--dur) var(--ease);
+      will-change: transform, filter;
+      position: relative;
+      opacity: .62;
+      filter: blur(1.2px) saturate(.92);
+      transform: scale(.92);
+    }
+    .card.active{
+      opacity: 1;
+      filter: blur(0) saturate(1.05);
+      transform: scale(1.02);
+      box-shadow: 0 40px 120px rgba(0,0,0,.25);
+      border-color: rgba(255,255,255,.82);
+    }
+    .media{
+      height: 100%;
+      display:grid;
+      grid-template-rows: 1fr auto;
+    }
+    figure{
+      margin:0;
+      height:100%;
+      display:grid;
+      place-items:center;
+      background:
+        radial-gradient(900px 420px at 30% 20%, rgba(255,255,255,.75), rgba(255,255,255,.20)),
+        linear-gradient(135deg, rgba(255,255,255,.16), rgba(255,255,255,.06));
+    }
+    .media img{
+      width: 100%;
+      height: 100%;
+      object-fit: contain;
+      padding: 14px;
+    }
+    .cap{
+      display:flex;
+      justify-content:space-between;
+      align-items:center;
+      gap: 12px;
+      padding: 12px 14px 14px;
+      border-top: 1px solid rgba(255,255,255,.55);
+      background: linear-gradient(180deg, rgba(255,255,255,.55), rgba(255,255,255,.22));
+    }
+    .cap b{
+      font-size: 14px;
+      letter-spacing: .02em;
+      white-space: nowrap;
+      overflow:hidden;
+      text-overflow: ellipsis;
+    }
+    .cap span{
+      font-size: 12px;
+      color: var(--muted);
+      font-weight: 800;
+      white-space: nowrap;
+    }
+
+    .broken{
+      position:absolute;
+      inset: 0;
+      display:none;
+      padding: 18px;
+      background: linear-gradient(180deg, rgba(255,255,255,.92), rgba(255,255,255,.70));
+      color: rgba(0,0,0,.78);
+    }
+    .broken.show{ display:grid; }
+    .broken .box{
+      align-self:center;
+      justify-self:center;
+      max-width: 420px;
+      border-radius: 18px;
+      border: 1px dashed rgba(0,0,0,.18);
+      padding: 14px 14px 12px;
+      background: rgba(255,255,255,.75);
+      box-shadow: 0 18px 60px rgba(0,0,0,.12);
+    }
+    .broken h3{ margin:0 0 8px; font-size: 14px; }
+    .broken p{ margin:0; font-size: 12px; line-height: 1.5; opacity:.85; }
+
+    .panel{
+      width:min(1180px, 100%);
+      margin: 0 auto;
+      display:grid;
+      grid-template-columns: 1fr auto;
+      gap: 12px;
+      align-items:center;
+    }
+    .thumbs{
+      border-radius: 999px;
+      background: rgba(255,255,255,.55);
+      border: 1px solid var(--border);
+      box-shadow: 0 18px 52px rgba(0,0,0,.12);
+      backdrop-filter: blur(14px);
+      -webkit-backdrop-filter: blur(14px);
+      padding: 8px 10px;
+      overflow:hidden;
+      display:flex;
+      gap: 8px;
+      align-items:center;
+    }
+    .t{
+      width: 44px; height: 34px;
+      border-radius: 12px;
+      border: 1px solid rgba(255,255,255,.55);
+      overflow:hidden;
+      background: rgba(255,255,255,.35);
+      cursor:pointer;
+      opacity:.7;
+      transition: opacity .12s ease, transform .12s ease;
+      flex: 0 0 auto;
+    }
+    .t:hover{ opacity:.95; transform: translateY(-1px); }
+    .t.active{ opacity:1; outline: 2px solid rgba(0,0,0,.35); outline-offset: 2px; }
+    .t img{ width:100%; height:100%; object-fit: cover; padding:0; }
+
+    .ctl{ display:flex; gap: 10px; align-items:center; justify-content:flex-end; }
+    .bar{
+      width: 160px;
+      height: 10px;
+      border-radius: 999px;
+      background: rgba(0,0,0,.10);
+      overflow:hidden;
+      border: 1px solid rgba(255,255,255,.55);
+    }
+    .bar i{
+      display:block;
+      height:100%;
+      width:0%;
+      background: linear-gradient(90deg, rgba(0,0,0,.58), rgba(0,0,0,.22));
+      border-radius: 999px;
+    }
+
+    .lb{
+      position:fixed; inset:0;
+      z-index: 9999;
+      display:none;
+      place-items:center;
+      padding: 16px;
+      background: rgba(0,0,0,.68);
+    }
+    .lb.open{ display:grid; }
+    .lbCard{
+      width: min(1100px, 100%);
+      max-height: 90svh;
+      border-radius: 24px;
+      overflow:hidden;
+      background: rgba(255,255,255,.92);
+      box-shadow: 0 30px 140px rgba(0,0,0,.42);
+    }
+    .lbCard img{
+      width:100%;
+      height: calc(90svh - 56px);
+      object-fit: contain;
+      background: radial-gradient(900px 420px at 30% 20%, rgba(255,255,255,.92), rgba(230,230,230,.55));
+      padding: 10px;
+    }
+    .lbCap{
+      height: 56px;
+      display:flex;
+      align-items:center;
+      justify-content:space-between;
+      gap: 10px;
+      padding: 10px 14px;
+      border-top: 1px solid rgba(0,0,0,.08);
+      font-weight: 900;
+    }
+    .lbCap button{
+      border:none;
+      background: rgba(0,0,0,.08);
+      padding: 8px 12px;
+      border-radius: 999px;
+      cursor:pointer;
+      font-weight: 900;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="aura"></div>
+
+  <header>
+    <div class="brand">
+      <div class="logo">🐽</div>
+      <div>
+        <h1>HAGI — Aura Gallery</h1>
+        <small>swipe / ← → / Space / click to zoom</small>
+      </div>
+    </div>
+
+    <div class="topActions">
+      <button class="chip" id="toggle">⏸ 停止</button>
+      <button class="chip" id="shuffle">🔀 シャッフル</button>
+      <a class="chip" href="./index.html">↩ トップへ</a>
+    </div>
+  </header>
+
+  <main>
+    <section class="stage">
+      <button class="navBtn left" id="prev" aria-label="前へ">‹</button>
+      <button class="navBtn right" id="next" aria-label="次へ">›</button>
+
+      <div class="rail" id="rail">
+        <div class="spacer"></div>
+        <div class="spacer"></div>
+      </div>
+    </section>
+
+    <section class="panel">
+      <div class="thumbs" id="thumbs"></div>
+      <div class="ctl">
+        <div class="bar"><i id="prog"></i></div>
+      </div>
+    </section>
+  </main>
+
+  <div class="lb" id="lb" role="dialog" aria-modal="true">
+    <div class="lbCard">
+      <img id="lbImg" alt="">
+      <div class="lbCap">
+        <span id="lbText">—</span>
+        <button id="lbClose">閉じる</button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    // 画像（同一フォルダ）
+    var data = [
+      { src: "./g1.jpg", cap: "Hagi / 01" },
+      { src: "./g2.jpg", cap: "Hagi / 02" },
+      { src: "./g3.jpg", cap: "Hagi / 03" },
+      { src: "./g4.jpg", cap: "Hagi / 04" },
+      { src: "./g5.jpg", cap: "Hagi / 05" },
+      { src: "./g6.jpg", cap: "Hagi / 06" },
+      { src: "./g7.jpg", cap: "Hagi / 07" },
+      { src: "./g8.jpg", cap: "Hagi / 08" }
+    ];
+
+    var rail = document.getElementById("rail");
+    var thumbs = document.getElementById("thumbs");
+    var prev = document.getElementById("prev");
+    var next = document.getElementById("next");
+    var toggle = document.getElementById("toggle");
+    var shuffleBtn = document.getElementById("shuffle");
+    var prog = document.getElementById("prog");
+
+    var lb = document.getElementById("lb");
+    var lbImg = document.getElementById("lbImg");
+    var lbText = document.getElementById("lbText");
+    var lbClose = document.getElementById("lbClose");
+
+    // URL ?i=3 で開始
+    var params = new URLSearchParams(location.search);
+    var startIndex = parseInt(params.get("i") || "0", 10);
+    if (isNaN(startIndex) || startIndex < 0) startIndex = 0;
+    if (startIndex > data.length - 1) startIndex = data.length - 1;
+
+    // spacer
+    var leftSpacer = rail.firstElementChild;
+    var rightSpacer = rail.lastElementChild;
+
+    var cards = [];
+    var tbtns = [];
+    var active = 0;
+
+    function clearUI(){
+      for (var i=0;i<cards.length;i++) cards[i].remove();
+      for (var j=0;j<tbtns.length;j++) tbtns[j].remove();
+      cards = [];
+      tbtns = [];
+    }
+
+    function makeCard(d, i){
+      var card = document.createElement("article");
+      card.className = "card";
+      card.dataset.i = String(i);
+
+      var media = document.createElement("div");
+      media.className = "media";
+
+      var fig = document.createElement("figure");
+      var img = document.createElement("img");
+      img.alt = d.cap;
+      img.loading = "eager";
+      img.decoding = "async";
+      img.src = d.src;
+
+      fig.appendChild(img);
+
+      var cap = document.createElement("div");
+      cap.className = "cap";
+      var b = document.createElement("b");
+      b.textContent = d.cap;
+      var s = document.createElement("span");
+      s.textContent = String(i+1).padStart(2,"0") + " / " + String(data.length).padStart(2,"0");
+
+      cap.appendChild(b);
+      cap.appendChild(s);
+
+      media.appendChild(fig);
+      media.appendChild(cap);
+
+      var broken = document.createElement("div");
+      broken.className = "broken";
+      var box = document.createElement("div");
+      box.className = "box";
+      var h3 = document.createElement("h3");
+      h3.textContent = "画像が読み込めません：" + d.src;
+      var p = document.createElement("p");
+      p.innerHTML = "① このHTMLと同じフォルダに画像があるか<br>② ファイル名の大文字小文字が一致しているか<br>③ 拡張子が .jpg か（.JPG/.jpegなら合わせる）";
+      box.appendChild(h3);
+      box.appendChild(p);
+      broken.appendChild(box);
+
+      img.addEventListener("error", function(){
+        broken.classList.add("show");
+        console.warn("Image load failed:", d.src);
+      });
+
+      card.appendChild(media);
+      card.appendChild(broken);
+
+      card.addEventListener("click", function(){
+        if (!card.classList.contains("active")) return;
+        openLB(i);
+      });
+
+      return card;
+    }
+
+    function makeThumb(d, i){
+      var btn = document.createElement("button");
+      btn.className = "t";
+      btn.type = "button";
+      btn.title = d.cap;
+      btn.dataset.i = String(i);
+
+      var im = document.createElement("img");
+      im.src = d.src;
+      im.alt = d.cap;
+      btn.appendChild(im);
+
+      btn.addEventListener("click", function(){
+        scrollToIndex(i, true);
+      });
+
+      return btn;
+    }
+
+    function build(){
+      clearUI();
+      for (var i=0;i<data.length;i++){
+        var c = makeCard(data[i], i);
+        rail.insertBefore(c, rightSpacer);
+        cards.push(c);
+
+        var t = makeThumb(data[i], i);
+        thumbs.appendChild(t);
+        tbtns.push(t);
+      }
+    }
+
+    function getActiveIndex(){
+      var rect = rail.getBoundingClientRect();
+      var centerX = rect.left + rect.width / 2;
+      var best = 0;
+      var bestDist = Infinity;
+
+      for (var i=0;i<cards.length;i++){
+        var r = cards[i].getBoundingClientRect();
+        var cx = r.left + r.width/2;
+        var dist = Math.abs(centerX - cx);
+        if (dist < bestDist){ bestDist = dist; best = i; }
+      }
+      return best;
+    }
+
+    function setActive(i){
+      active = i;
+      for (var k=0;k<cards.length;k++){
+        cards[k].classList.toggle("active", k === i);
+        tbtns[k].classList.toggle("active", k === i);
+      }
+      var u = new URL(location.href);
+      u.searchParams.set("i", String(i));
+      history.replaceState(null, "", u);
+
+      // ★file://では色抽出はしない（セキュリティ制限回避）
+      if (location.protocol !== "file:") {
+        tryAccentFromThumb(i);
+      }
+    }
+
+    function scrollToIndex(i, smooth){
+      var card = cards[i];
+      if (!card) return;
+      var cardRect = card.getBoundingClientRect();
+      var railRect = rail.getBoundingClientRect();
+
+      var currentScroll = rail.scrollLeft;
+      var delta = (cardRect.left + cardRect.width/2) - (railRect.left + railRect.width/2);
+      var target = currentScroll + delta;
+
+      rail.scrollTo({ left: target, behavior: smooth ? "smooth" : "auto" });
+      restartProgress();
+    }
+
+    function move(step){
+      var i = (active + step + data.length) % data.length;
+      scrollToIndex(i, true);
+    }
+
+    // swipe
+    var down=false, sx=0, dx=0;
+    rail.addEventListener("pointerdown", function(e){
+      down=true; sx=e.clientX; dx=0;
+      rail.setPointerCapture(e.pointerId);
+    });
+    rail.addEventListener("pointermove", function(e){ if(down) dx = e.clientX - sx; });
+    rail.addEventListener("pointerup", function(){
+      if(!down) return;
+      down=false;
+      if (Math.abs(dx) < 50) return;
+      move(dx > 0 ? -1 : 1);
+    });
+
+    // scroll -> active update
+    var raf = null;
+    rail.addEventListener("scroll", function(){
+      if (raf) cancelAnimationFrame(raf);
+      raf = requestAnimationFrame(function(){
+        setActive(getActiveIndex());
+      });
+    });
+
+    // keyboard
+    window.addEventListener("keydown", function(e){
+      if (lb.classList.contains("open")){
+        if (e.key === "Escape") closeLB();
+        return;
+      }
+      if (e.key === "ArrowLeft") move(-1);
+      if (e.key === "ArrowRight") move(1);
+      if (e.key === " " || e.key === "Spacebar"){
+        e.preventDefault();
+        if (playing) stopAuto(); else startAuto();
+      }
+    });
+
+    prev.addEventListener("click", function(){ move(-1); });
+    next.addEventListener("click", function(){ move(1); });
+
+    // autoplay + progress
+    var playing = true;
+    var INTERVAL = 3400;
+    var timer = null;
+    var t0 = 0;
+    var progRAF = null;
+
+    function tick(t){
+      var p = Math.min(1, (t - t0) / INTERVAL);
+      prog.style.width = (p * 100).toFixed(2) + "%";
+      if (p < 1 && playing) progRAF = requestAnimationFrame(tick);
+      else prog.style.width = "0%";
+    }
+    function restartProgress(){
+      if (!playing) { prog.style.width = "0%"; return; }
+      if (progRAF) cancelAnimationFrame(progRAF);
+      t0 = performance.now();
+      progRAF = requestAnimationFrame(tick);
+    }
+    function startAuto(){
+      playing = true;
+      toggle.textContent = "⏸ 停止";
+      if (timer) clearInterval(timer);
+      timer = setInterval(function(){ move(1); }, INTERVAL);
+      restartProgress();
+    }
+    function stopAuto(){
+      playing = false;
+      toggle.textContent = "▶ 再開";
+      if (timer) clearInterval(timer);
+      timer = null;
+      if (progRAF) cancelAnimationFrame(progRAF);
+      prog.style.width = "0%";
+    }
+    toggle.addEventListener("click", function(){
+      if (playing) stopAuto(); else startAuto();
+    });
+
+    shuffleBtn.addEventListener("click", function(){
+      stopAuto();
+      for (var i=data.length-1;i>0;i--){
+        var j = Math.floor(Math.random()*(i+1));
+        var tmp = data[i]; data[i]=data[j]; data[j]=tmp;
+      }
+      build();
+      requestAnimationFrame(function(){
+        scrollToIndex(0, false);
+        setActive(0);
+      });
+    });
+
+    // lightbox
+    function openLB(i){
+      lbImg.src = data[i].src;
+      lbImg.alt = data[i].cap;
+      lbText.textContent = (i+1) + " / " + data.length + "　" + data[i].cap;
+      lb.classList.add("open");
+      stopAuto();
+    }
+    function closeLB(){ lb.classList.remove("open"); }
+    lb.addEventListener("click", function(e){ if (e.target === lb) closeLB(); });
+    lbClose.addEventListener("click", closeLB);
+
+    // （HTTPの時だけ）サムネからアクセント色を取る
+    var probe = document.createElement("canvas");
+    var pctx = probe.getContext("2d", { willReadFrequently: true });
+
+    function tryAccentFromThumb(i){
+      try{
+        var img = tbtns[i].querySelector("img");
+        if (!img || !img.complete || img.naturalWidth === 0) return;
+        var w=24, h=18;
+        probe.width=w; probe.height=h;
+        pctx.drawImage(img, 0, 0, w, h);
+        var px = pctx.getImageData(0,0,w,h).data;
+        var r=0,g=0,b=0,n=0;
+        for (var k=0;k<px.length;k+=4){
+          var a = px[k+3]/255;
+          if (a < .4) continue;
+          r += px[k]; g += px[k+1]; b += px[k+2]; n++;
+        }
+        if (!n) return;
+        r = Math.round(r/n); g = Math.round(g/n); b = Math.round(b/n);
+        document.documentElement.style.setProperty("--a1", "rgb("+r+","+g+","+b+")");
+      }catch(e){ /* 無視 */ }
+    }
+
+    // init
+    build();
+    requestAnimationFrame(function(){
+      scrollToIndex(startIndex, false);
+      setActive(startIndex);
+    });
+    startAuto();
+    window.addEventListener("resize", function(){ scrollToIndex(active, false); });
+  </script>
+</body>
+</html>

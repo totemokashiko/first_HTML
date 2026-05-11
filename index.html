@@ -1,0 +1,233 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Hagi Forest</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Yu Gothic", "Hiragino Sans", sans-serif;
+      background: url('forest.jpg') no-repeat center center/cover;
+      color: #2c2c2c;
+      text-align: center;
+    }
+
+    /* ------------------------------
+       ハンバーガーメニュー（共通）
+    ------------------------------ */
+    nav.hamburger-nav {
+      width: 100%;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2a4d2a;
+    }
+
+    .hamburger {
+      font-size: 28px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .nav-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: none;
+      flex-direction: column;
+      background: rgba(255,255,255,0.95);
+    }
+
+    .nav-links li {
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 14px;
+      text-decoration: none;
+      color: #2a4d2a;
+      font-size: 18px;
+    }
+
+    .nav-links a:hover {
+      background: rgba(0,0,0,0.05);
+    }
+
+    /* PCでは横並び */
+    @media (min-width: 800px) {
+      .hamburger {
+        display: none;
+      }
+      .nav-links {
+        display: flex !important;
+        flex-direction: row;
+        justify-content: center;
+        background: transparent;
+      }
+      .nav-links li {
+        border: none;
+      }
+      .nav-links a {
+        padding: 14px 20px;
+      }
+    }
+
+    /* ------------------------------
+       ヘッダー
+    ------------------------------ */
+    header {
+      background: rgba(255, 255, 255, 0.7);
+      padding: 25px 0;
+      font-size: 26px;
+      font-weight: bold;
+      backdrop-filter: blur(4px);
+      margin-bottom: 20px;
+    }
+
+    /* ------------------------------
+       メイン
+    ------------------------------ */
+    .hero {
+      margin: 20px auto;
+      width: 90%;
+      max-width: 500px;
+    }
+
+    .hero img {
+      width: 100%;
+      max-width: 300px;
+      height: auto;
+      border-radius: 16px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.2);
+    }
+
+    .hero h1 {
+      margin-top: 20px;
+      font-size: 34px;
+      font-weight: 600;
+      color: #3a3a3a;
+      text-shadow: 0 1px 3px rgba(255,255,255,0.8);
+    }
+
+    .hero p {
+      font-size: 18px;
+      color: #444;
+      background: rgba(255,255,255,0.7);
+      display: inline-block;
+      padding: 10px 20px;
+      border-radius: 12px;
+      backdrop-filter: blur(4px);
+    }
+
+    /* スマホ用文字サイズ調整 */
+    @media (max-width: 600px) {
+      header {
+        font-size: 22px;
+        padding: 18px 0;
+      }
+      .hero h1 {
+        font-size: 26px;
+      }
+      .hero p {
+        font-size: 16px;
+        padding: 8px 14px;
+      }
+    }
+
+    /* ------------------------------
+       フッター
+    ------------------------------ */
+    footer {
+      margin-top: 60px;
+      padding: 20px;
+      font-size: 14px;
+      color: #555;
+      background: rgba(255,255,255,0.6);
+      backdrop-filter: blur(4px);
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ハンバーガーメニュー -->
+  <nav class="hamburger-nav">
+    <div class="nav-header">
+      <div class="logo">Hagi Forest</div>
+      <div class="hamburger" id="hamburger-btn">☰</div>
+    </div>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">ホーム</a></li>
+      <li><a href="profile.html">はぎのプロフィール</a></li>
+      <li><a href="gallery_freecopilot.html">ギャラリー（無料版Copilot）</a></li>
+      <li><a href="gallery_paidcopilot.html">ギャラリー（有料版Copilot）</a></li>
+      <li><a href="gallery_freeclaudecode.html">ギャラリー（無料版claudecode）</a></li>
+      <li><a href="gallery_paidclaudecode.html">ギャラリー（有料版claudecode）</a></li>
+      <li><a href="memory-game.html">ブタ神経衰弱</a></li>
+      <li><a href="contact.html">お問い合わせ</a></li>
+    </ul>
+  </nav>
+
+  <!-- ヘッダー -->
+  <header>
+    Hagi Forest – 小さな相棒の森
+  </header>
+
+  <!-- メイン -->
+  <div class="hero">
+    <img src="buta1.jpg" alt="はぎ">
+    <h1>ようこそ、はぎの森へ</h1>
+    <p>小さなマイクロ豚「はぎ」と過ごす、あたたかい日々。</p>
+  </div>
+
+  <!-- フッター -->
+  <footer>
+    © 2026 Hagi Forest
+  </footer>
+
+  <!-- ハンバーガーJS -->
+  <script>
+    const btn = document.getElementById("hamburger-btn");
+    const nav = document.getElementById("nav-links");
+
+    btn.addEventListener("click", () => {
+      if (nav.classList.contains("open")) {
+        nav.classList.remove("open");
+        nav.style.display = "none";
+      } else {
+        nav.classList.add("open");
+        nav.style.display = "flex";
+        nav.style.flexDirection = "column";
+      }
+    });
+
+    // リンククリックでメニューを閉じる
+    nav.querySelectorAll("a").forEach(a => {
+      a.addEventListener("click", () => {
+        nav.classList.remove("open");
+        nav.style.display = "none";
+      });
+    });
+  </script>
+
+</body>
+</html>

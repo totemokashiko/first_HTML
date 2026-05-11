@@ -1,0 +1,225 @@
+<!DOCTYPE html>
+<html lang="ja">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>はぎのプロフィール</title>
+
+  <style>
+    body {
+      margin: 0;
+      font-family: "Rounded Mplus 1c", "Yu Gothic", sans-serif;
+      background-color: #fffaf5;
+      overflow-x: hidden;
+      text-align: center;
+      color: #333;
+    }
+
+    /* ------------------------------
+       ハンバーガーメニュー（共通）
+    ------------------------------ */
+    nav.hamburger-nav {
+      width: 100%;
+      background: rgba(255,255,255,0.8);
+      backdrop-filter: blur(6px);
+      border-bottom: 1px solid rgba(0,0,0,0.1);
+      position: sticky;
+      top: 0;
+      z-index: 1000;
+    }
+
+    .nav-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      padding: 14px 20px;
+    }
+
+    .logo {
+      font-size: 20px;
+      font-weight: bold;
+      color: #2a4d2a;
+    }
+
+    .hamburger {
+      font-size: 28px;
+      cursor: pointer;
+      user-select: none;
+    }
+
+    .nav-links {
+      list-style: none;
+      padding: 0;
+      margin: 0;
+      display: none;
+      flex-direction: column;
+      background: rgba(255,255,255,0.95);
+    }
+
+    .nav-links li {
+      border-top: 1px solid rgba(0,0,0,0.1);
+    }
+
+    .nav-links a {
+      display: block;
+      padding: 14px;
+      text-decoration: none;
+      color: #2a4d2a;
+      font-size: 18px;
+    }
+
+    .nav-links a:hover {
+      background: rgba(0,0,0,0.05);
+    }
+
+    /* PCでは横並び */
+    @media (min-width: 800px) {
+      .hamburger {
+        display: none;
+      }
+      .nav-links {
+        display: flex !important;
+        flex-direction: row;
+        justify-content: center;
+        background: transparent;
+      }
+      .nav-links li {
+        border: none;
+      }
+      .nav-links a {
+        padding: 14px 20px;
+      }
+    }
+
+    /* ------------------------------
+       水玉アニメーション背景
+    ------------------------------ */
+    .dot {
+      position: absolute;
+      border-radius: 50%;
+      opacity: 0.6;
+      animation: float 12s infinite ease-in-out;
+    }
+
+    @keyframes float {
+      0% { transform: translateY(0) scale(1); }
+      50% { transform: translateY(-40px) scale(1.1); }
+      100% { transform: translateY(0) scale(1); }
+    }
+
+    .dot:nth-child(1) { width: 120px; height: 120px; background: #ffd6e0; top: 10%; left: 15%; animation-delay: 0s; }
+    .dot:nth-child(2) { width: 80px; height: 80px; background: #c8e7ff; top: 30%; left: 70%; animation-delay: 2s; }
+    .dot:nth-child(3) { width: 100px; height: 100px; background: #ffe8b0; top: 60%; left: 25%; animation-delay: 4s; }
+    .dot:nth-child(4) { width: 140px; height: 140px; background: #d9ffd9; top: 75%; left: 80%; animation-delay: 6s; }
+    .dot:nth-child(5) { width: 90px; height: 90px; background: #e0c8ff; top: 50%; left: 50%; animation-delay: 8s; }
+
+    /* ------------------------------
+       メインカード
+    ------------------------------ */
+    .card {
+      position: relative;
+      z-index: 10;
+      background: rgba(255,255,255,0.85);
+      border-radius: 20px;
+      box-shadow: 0 8px 20px rgba(0,0,0,0.15);
+      max-width: 500px;
+      margin: 80px auto;
+      padding: 30px;
+    }
+
+    .card img {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 20px;
+      box-shadow: 0 6px 15px rgba(0,0,0,0.2);
+    }
+
+    h1 {
+      font-size: 28px;
+      margin-top: 20px;
+      color: #444;
+    }
+
+    ul {
+      list-style: none;
+      padding: 0;
+      font-size: 18px;
+      line-height: 1.8;
+    }
+
+    a.back {
+      display: inline-block;
+      margin-top: 20px;
+      font-size: 18px;
+      color: #2a5d2a;
+      text-decoration: none;
+      background: rgba(255,255,255,0.9);
+      padding: 10px 20px;
+      border-radius: 12px;
+      box-shadow: 0 4px 10px rgba(0,0,0,0.15);
+      transition: 0.2s;
+    }
+
+    a.back:hover {
+      background: #fff;
+      transform: translateY(-3px);
+    }
+
+    /* スマホ最適化 */
+    @media (max-width: 600px) {
+      h1 { font-size: 24px; }
+      ul { font-size: 16px; }
+      .card { margin: 40px 20px; padding: 20px; }
+    }
+  </style>
+</head>
+
+<body>
+
+  <!-- ハンバーガーメニュー -->
+  <nav class="hamburger-nav">
+    <div class="nav-header">
+      <div class="logo">Hagi Forest</div>
+      <div class="hamburger" id="hamburger-btn">☰</div>
+    </div>
+
+    <ul class="nav-links" id="nav-links">
+      <li><a href="index.html">ホーム</a></li>
+      <li><a href="profile.html">はぎのプロフィール</a></li>
+      <li><a href="gallery.html">ギャラリー</a></li>
+      <li><a href="contact.html">お問い合わせ</a></li>
+    </ul>
+  </nav>
+
+  <!-- 水玉背景 -->
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+  <div class="dot"></div>
+
+  <!-- メインカード -->
+  <div class="card">
+    <img src="buta2.jpg" alt="はぎ">
+    <h1>🐷 はぎのプロフィール</h1>
+    <ul>
+      <li><strong>名前：</strong>はぎ</li>
+      <li><strong>誕生日：</strong>2025.4.22</li>
+      <li><strong>性別：</strong>♂</li>
+      <li><strong>柄：</strong>クリームぶち</li>
+    </ul>
+    <a href="index.html" class="back">🏡 トップページへ戻る</a>
+  </div>
+
+  <!-- ハンバーガーJS -->
+  <script>
+    const btn = document.getElementById("hamburger-btn");
+    const nav = document.getElementById("nav-links");
+
+    btn.addEventListener("click", () => {
+      nav.style.display = nav.style.display === "flex" ? "none" : "flex";
+    });
+  </script>
+
+</body>
+</html>
